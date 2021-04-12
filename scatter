@@ -33,3 +33,9 @@ class ScatterToolUI(QtWidgets.QDialog):
         layout.addWidget(self.load_source_btn)
         layout.addWidget(self.load_destination_btn)
         return layout
+      
+    def create_ui(self, MainWindow):
+        MainWindow.setWindowTitle("Scatter Tool")
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
