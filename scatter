@@ -17,3 +17,19 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.setMinimumWidth(500)
         self.setWindowFlags(self.windowFlags() ^
                             QtCore.Qt.WindowContextHelpButtonHint)
+        self.setWindowFlags(self.windowFlags() ^
+                            QtCore.Qt.WindowContextHelpButtonHint)
+
+    def create_connections(self):
+        """Connects signals and slots"""
+        self.load_source_btn.clicked.connect(self.load_source)
+        self.load_destination_btn.clicked.connect(self.load_destination)
+        self.scatter_btn.clicked.connect(self.scatter)
+
+    def _create_button_ui(self):
+        self.load_source_btn = QtWidgets.QPushButton()
+        self.load_destination_btn = QtWidgets.QPushButton()
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.load_source_btn)
+        layout.addWidget(self.load_destination_btn)
+        return layout
