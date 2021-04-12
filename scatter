@@ -121,3 +121,72 @@ class ScatterToolUI(QtWidgets.QDialog):
         MainWindow.setMenuBar(self.menubar)
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        
+class ScatterTool(QtWidgets.QMainWindow):
+
+    def __init__(self, parent=maya_main_window()):
+        super(ScatterTool, self).__init__(parent)
+
+        self.ui = ScatterToolUI()
+        self.ui.create_ui(self)
+
+        self.ui.load_source_btn.clicked.connect(self.load_source)
+        self.ui.load_destination_btn.clicked.connect(self.load_destination)
+        self.ui.scatter_btn.clicked.connect(self.scatter)
+
+        self.surface = None
+        self.object = None
+
+    def load_source(self):
+
+        """Loads source object to scatter"""
+
+        selection = cmds.ls(selection=True)
+
+        if len(selection) != 1:
+            message = "Please select one object."
+            response = QtWidgets.QMessageBox.information(self, "Error",
+                                                         message)
+
+        else:
+
+            surface = selection[0]
+
+            if surface != self.object:
+
+                self.surface = surface
+
+                self.ui.source_object_dpy.setText(surface)
+
+            else:
+                message = "Source Object And Destination Can't Be " \
+                          "The Same"
+                response = QtWidgets.QMessageBox.warning(self, "Error",
+                                                         message)
+
+    def load_destination(self):
+
+        """Loads destination object to be scattered onto"""
+
+        selection = cmds.ls(selection=True)
+
+        if len(selection) != 1:
+            message = "Please select one object."
+            response = QtWidgets.QMessageBox.information(self, "Error",
+                                                         message)
+
+        else:
+
+            object = selection[0]
+
+            if object != self.surface:
+
+                self.object = object
+
+                self.ui.destination_object_dpy.setText(object)
+
+            else:
+                message = "Surface can't be the same as object."
+                response = QtWidgets.QMessageBox.information(self,
+                                                             "Error",
+                                                             message)
