@@ -91,3 +91,33 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.max_scale.setObjectName("max_scale")
         self.horizontalLayout.addWidget(self.max_scale)
         self.horizontalLayout.addItem(spacerItem)
+        
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.label = QtWidgets.QLabel("Min Rotation")
+        self.horizontalLayout.addWidget(self.label)
+        self.rotate_min = QtWidgets.QSpinBox(self.centralwidget)
+        self.rotate_min.setMinimum(0)
+        self.rotate_min.setProperty("value", 0)
+        self.horizontalLayout.addWidget(self.rotate_min)
+        
+        self.label = QtWidgets.QLabel("Max Rotation")
+        self.horizontalLayout.addWidget(self.label)
+        self.rotate_max = QtWidgets.QSpinBox(self.centralwidget)
+        self.rotate_max.setMaximum(360)
+        self.rotate_max.setProperty("value", 360)
+        self.rotate_max.setObjectName("rotate_max")
+        self.horizontalLayout.addWidget(self.rotate_max)
+        
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.scatter_btn = QtWidgets.QPushButton("Scatter")
+        self.scatter_btn.setObjectName("scatter_btn")
+        self.verticalLayout.addWidget(self.scatter_btn)
+        
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 250, 21))
+        self.menubar.setObjectName("menubar")
+        MainWindow.setMenuBar(self.menubar)
+
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
