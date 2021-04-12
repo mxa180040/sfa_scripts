@@ -1,6 +1,8 @@
 import maya.OpenMayaUI as omui
+import maya.cmds as cmds
 from PySide2 import QtWidgets, QtCore
 from shiboken2 import wrapInstance
+import random
 
 def maya_main_window():
     """Return the Maya main window widget"""
@@ -241,6 +243,31 @@ class ScatterTool(QtWidgets.QMainWindow):
             message = "Please load a source and destination object"
             response = QtWidgets.QMessageBox.information(self, "Error",
                                                          message)                                                             
-                                                             
+   
+       def randomize_rotation(self, node):
+
+        """Randomizes the rotation angle of objects"""
+
+        random_index = random.randint(self.ui.rotate_min.value(),
+                                      self.ui.rotate_max.value())
+
+        cmds.setAttr("%s.overrideEnabled" % node, True, random_index)
+
+    def obj_instance(self):
+
+        """Creates instance of new object"""
+
+        new_obj = cmds.instance(self.object)[0]
+        return new_obj
+
+
+def run():
+    try:
+        ScatterTool.close()
+    except:
+        pass
+
+    scatter = ScatterTool()
+    scatter.show()
                                                              
                                                            
