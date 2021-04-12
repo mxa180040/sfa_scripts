@@ -190,3 +190,57 @@ class ScatterTool(QtWidgets.QMainWindow):
                 response = QtWidgets.QMessageBox.information(self,
                                                              "Error",
                                                              message)
+    def scatter(self):
+
+        """Scatter tool mechanism"""
+
+        if self.surface and self.object:
+
+            self.copied_nodes = []
+
+            self.instances = self.ui.num_instances.value()
+            self.scale_min = self.ui.min_scale.value()
+            self.scale_max = self.ui.max_scale.value()
+            self.rotate_min = self.ui.rotate_min.value()
+            self.rotate_max = self.ui.rotate_max.value()
+            surface_wsp = cmds.xform(self.surface, query=True, worldSpace=True,
+                                     boundingBox=True)
+            xmin, ymin, zmin, xmax, ymax, zmax = surface_wsp
+
+            for instance_num in range(1, self.instances + 1):
+                pos_x = random.uniform(xmin, xmax)
+                pos_y = random.uniform(ymin, ymax)
+                pos_z = random.uniform(zmin, zmax)
+
+                new_obj = self.obj_instance()
+
+                cmds.setAttr("%s.tx" % new_obj, float(pos_x))
+                cmds.setAttr("%s.ty" % new_obj, float(pos_y))
+                cmds.setAttr("%s.tz" % new_obj, float(pos_z))
+
+                random_scale = random.uniform(self.scale_min, self.scale_max)
+                cmds.setAttr("%s.scaleX" % new_obj, random_scale)
+                cmds.setAttr("%s.scaleY" % new_obj, random_scale)
+                cmds.setAttr("%s.scaleZ" % new_obj, random_scale)
+
+                g_constrain = cmds.geometryConstraint(self.surface, new_obj,
+                                                      weight=10)
+
+                n_constraint = cmds.normalConstraint(self.surface,
+                                                     new_obj,
+                                                     aimVector=[0, 1, 0],
+                                                     upVector=[0, 1, 0],
+                                                     worldUpType="scene")
+                cmds.delete(n_constraint)
+                cmds.delete(g_constrain)
+
+                self.randomize_rotation(new_obj)
+                self.copied_nodes.append(new_obj)
+
+        else:
+            message = "Please load a source and destination object"
+            response = QtWidgets.QMessageBox.information(self, "Error",
+                                                         message)                                                             
+                                                             
+                                                             
+                                                           
