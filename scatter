@@ -4,6 +4,7 @@ from PySide2 import QtWidgets, QtCore
 from shiboken2 import wrapInstance
 import random
 
+
 def maya_main_window():
     """Return the Maya main window widget"""
     main_window = omui.MQtUtil_mainWindow()
@@ -19,29 +20,31 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.setMinimumWidth(500)
         self.setWindowFlags(self.windowFlags() ^
                             QtCore.Qt.WindowContextHelpButtonHint)
-        self.setWindowFlags(self.windowFlags() ^
-                            QtCore.Qt.WindowContextHelpButtonHint)
 
     def create_connections(self):
         """Connects signals and slots"""
         self.load_source_btn.clicked.connect(self.load_source)
         self.load_destination_btn.clicked.connect(self.load_destination)
         self.scatter_btn.clicked.connect(self.scatter)
+        self.load_vertices_btn.clicked.connect(self.load_vertices)
 
     def _create_button_ui(self):
         self.load_source_btn = QtWidgets.QPushButton()
         self.load_destination_btn = QtWidgets.QPushButton()
+        self.load_vertices_btn = QtWidgets.QPushButton()
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.load_source_btn)
         layout.addWidget(self.load_destination_btn)
+        layout.addWidget(self.load_vertices_btn)
+        layout.addWidget(self.align_checkbox)
         return layout
-      
+
     def create_ui(self, MainWindow):
         MainWindow.setWindowTitle("Scatter Tool")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
-        
+
         self.source_object_dpy = QtWidgets.QLineEdit(self.centralwidget)
         self.source_object_dpy.setReadOnly(True)
         self.horizontalLayout.addWidget(self.source_object_dpy)
@@ -51,7 +54,6 @@ class ScatterToolUI(QtWidgets.QDialog):
                                             QtWidgets.QSizePolicy.Expanding,
                                             QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
-        
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.destination_object_dpy = QtWidgets.QLineEdit(self.centralwidget)
@@ -86,6 +88,14 @@ class ScatterToolUI(QtWidgets.QDialog):
         
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.label = QtWidgets.QLabel("Align To Normals")
+        self.horizontalLayout.addWidget(self.label)
+        self.align = QtWidgets.QCheckBox(self.centralwidget)
+        self.horizontalLayout.addWidget(self.align)
+        self.horizontalLayout.addItem(spacerItem)
+        
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.label = QtWidgets.QLabel("Min Object Scale")
         self.horizontalLayout.addWidget(self.label)
         self.min_scale = QtWidgets.QDoubleSpinBox(self.centralwidget)
@@ -112,7 +122,6 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.rotate_min.setMinimum(0)
         self.rotate_min.setProperty("value", 0)
         self.horizontalLayout.addWidget(self.rotate_min)
-        
         self.label = QtWidgets.QLabel("Max Rotation")
         self.horizontalLayout.addWidget(self.label)
         self.rotate_max = QtWidgets.QSpinBox(self.centralwidget)
@@ -125,7 +134,6 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.scatter_btn = QtWidgets.QPushButton("Scatter")
         self.scatter_btn.setObjectName("scatter_btn")
         self.verticalLayout.addWidget(self.scatter_btn)
-        
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 250, 21))
@@ -133,7 +141,8 @@ class ScatterToolUI(QtWidgets.QDialog):
         MainWindow.setMenuBar(self.menubar)
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-        
+
+
 class ScatterTool(QtWidgets.QMainWindow):
 
     def __init__(self, parent=maya_main_window()):
@@ -145,6 +154,7 @@ class ScatterTool(QtWidgets.QMainWindow):
         self.ui.load_source_btn.clicked.connect(self.load_source)
         self.ui.load_destination_btn.clicked.connect(self.load_destination)
         self.ui.scatter_btn.clicked.connect(self.scatter)
+        self.ui.load_vertices_btn.clicked.connect(self.load_vertices)
 
         self.surface = None
         self.object = None
@@ -171,8 +181,8 @@ class ScatterTool(QtWidgets.QMainWindow):
                 self.ui.source_object_dpy.setText(surface)
 
             else:
-                message = "Source Object And Destination Can't Be " \
-                          "The Same"
+                message = "Source Object Can't Be The Same As " \
+                          "Destination Object."
                 response = QtWidgets.QMessageBox.warning(self, "Error",
                                                          message)
 
@@ -198,10 +208,54 @@ class ScatterTool(QtWidgets.QMainWindow):
                 self.ui.destination_object_dpy.setText(object)
 
             else:
-                message = "Surface can't be the same as object."
+                message = "Source Object Can't Be The Same As " \
+                          "Destination Object."
                 response = QtWidgets.QMessageBox.information(self,
                                                              "Error",
                                                              message)
+
+
+    def load_destination(self):
+
+        """Loads destination object to be scattered onto"""
+
+        selection = cmds.ls(selection=True)
+
+        if len(selection) != 1:
+            message = "Please select one object."
+            response = QtWidgets.QMessageBox.information(self, "Error",
+                                                         message)
+
+        else:
+
+            object = selection[0]
+
+            if object != self.surface:
+
+                self.object = object
+
+                self.ui.destination_object_dpy.setText(object)
+
+            else:
+                message = "Source Object Can't Be The Same As " \
+                          "Destination Object."
+                response = QtWidgets.QMessageBox.information(self,
+                                                             "Error",
+                                                             message)
+
+
+    def load_vertices(self):
+
+        """Loads vertices to scatter source object onto"""
+
+        selection = cmds.ls(selection=True)
+
+        if len(selection) != self.object:
+            message = "Please select vertices only."
+            response = QtWidgets.QMessageBox.information(self, "Error",
+                                                         message)
+
+
     def scatter(self):
 
         """Scatter tool mechanism"""
@@ -252,9 +306,9 @@ class ScatterTool(QtWidgets.QMainWindow):
         else:
             message = "Please load a source and destination object"
             response = QtWidgets.QMessageBox.information(self, "Error",
-                                                         message)                                                             
-   
-       def randomize_rotation(self, node):
+                                                         message)
+
+    def randomize_rotation(self, node):
 
         """Randomizes the rotation angle of objects"""
 
@@ -279,5 +333,3 @@ def run():
 
     scatter = ScatterTool()
     scatter.show()
-                                                             
-                                                           
