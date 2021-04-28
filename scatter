@@ -27,16 +27,18 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.load_destination_btn.clicked.connect(self.load_destination)
         self.scatter_btn.clicked.connect(self.scatter)
         self.load_vertices_btn.clicked.connect(self.load_vertices)
+        self.align_checkbox_.clicked.connect(self.align_normals)
 
     def _create_button_ui(self):
         self.load_source_btn = QtWidgets.QPushButton()
         self.load_destination_btn = QtWidgets.QPushButton()
         self.load_vertices_btn = QtWidgets.QPushButton()
+        self.align_checkbox_ = QtWidgets.QCheckBox()
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.load_source_btn)
         layout.addWidget(self.load_destination_btn)
         layout.addWidget(self.load_vertices_btn)
-        layout.addWidget(self.align_checkbox)
+        layout.addWidget(self.align_checkbox_)
         return layout
 
     def create_ui(self, MainWindow):
@@ -54,6 +56,7 @@ class ScatterToolUI(QtWidgets.QDialog):
                                             QtWidgets.QSizePolicy.Expanding,
                                             QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
+        
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.destination_object_dpy = QtWidgets.QLineEdit(self.centralwidget)
@@ -90,8 +93,8 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.label = QtWidgets.QLabel("Align To Normals")
         self.horizontalLayout.addWidget(self.label)
-        self.align = QtWidgets.QCheckBox(self.centralwidget)
-        self.horizontalLayout.addWidget(self.align)
+        self.align_normals = QtWidgets.QCheckBox(self.centralwidget)
+        self.horizontalLayout.addWidget(self.align_normals)
         self.horizontalLayout.addItem(spacerItem)
         
         self.verticalLayout.addLayout(self.horizontalLayout)
@@ -214,36 +217,6 @@ class ScatterTool(QtWidgets.QMainWindow):
                                                              "Error",
                                                              message)
 
-
-    def load_destination(self):
-
-        """Loads destination object to be scattered onto"""
-
-        selection = cmds.ls(selection=True)
-
-        if len(selection) != 1:
-            message = "Please select one object."
-            response = QtWidgets.QMessageBox.information(self, "Error",
-                                                         message)
-
-        else:
-
-            object = selection[0]
-
-            if object != self.surface:
-
-                self.object = object
-
-                self.ui.destination_object_dpy.setText(object)
-
-            else:
-                message = "Source Object Can't Be The Same As " \
-                          "Destination Object."
-                response = QtWidgets.QMessageBox.information(self,
-                                                             "Error",
-                                                             message)
-
-
     def load_vertices(self):
 
         """Loads vertices to scatter source object onto"""
@@ -254,7 +227,6 @@ class ScatterTool(QtWidgets.QMainWindow):
             message = "Please select vertices only."
             response = QtWidgets.QMessageBox.information(self, "Error",
                                                          message)
-
 
     def scatter(self):
 
@@ -269,7 +241,8 @@ class ScatterTool(QtWidgets.QMainWindow):
             self.scale_max = self.ui.max_scale.value()
             self.rotate_min = self.ui.rotate_min.value()
             self.rotate_max = self.ui.rotate_max.value()
-            surface_wsp = cmds.xform(self.surface, query=True, worldSpace=True,
+            surface_wsp = cmds.xform(self.surface, query=True,
+                                     worldSpace=True,
                                      boundingBox=True)
             xmin, ymin, zmin, xmax, ymax, zmax = surface_wsp
 
@@ -284,19 +257,18 @@ class ScatterTool(QtWidgets.QMainWindow):
                 cmds.setAttr("%s.ty" % new_obj, float(pos_y))
                 cmds.setAttr("%s.tz" % new_obj, float(pos_z))
 
-                random_scale = random.uniform(self.scale_min, self.scale_max)
+                random_scale = random.uniform(self.scale_min,
+                                              self.scale_max)
                 cmds.setAttr("%s.scaleX" % new_obj, random_scale)
                 cmds.setAttr("%s.scaleY" % new_obj, random_scale)
                 cmds.setAttr("%s.scaleZ" % new_obj, random_scale)
 
-                g_constrain = cmds.geometryConstraint(self.surface, new_obj,
+                g_constrain = cmds.geometryConstraint(self.surface,
+                                                      new_obj,
                                                       weight=10)
 
                 n_constraint = cmds.normalConstraint(self.surface,
-                                                     new_obj,
-                                                     aimVector=[0, 1, 0],
-                                                     upVector=[0, 1, 0],
-                                                     worldUpType="scene")
+                                                     new_obj)
                 cmds.delete(n_constraint)
                 cmds.delete(g_constrain)
 
@@ -307,6 +279,16 @@ class ScatterTool(QtWidgets.QMainWindow):
             message = "Please load a source and destination object"
             response = QtWidgets.QMessageBox.information(self, "Error",
                                                          message)
+
+    def align_normals(self):
+
+        """Function that aligns geometry to normals"""
+
+        new_obj = self.obj_instance()
+
+        cmds.normalConstraint(self.surface, new_obj, aimVector=[0.0,
+                                                                1.0,
+                                                                0.0])
 
     def randomize_rotation(self, node):
 
