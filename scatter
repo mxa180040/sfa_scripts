@@ -27,7 +27,7 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.load_destination_btn.clicked.connect(self.load_destination)
         self.scatter_btn.clicked.connect(self.scatter)
         self.load_vertices_btn.clicked.connect(self.load_vertices)
-        self.align_checkbox_.clicked.connect(self.align_normals)
+        self.align_checkbox_.stateChanged.connect(self.align_normals)
 
     def _create_button_ui(self):
         self.load_source_btn = QtWidgets.QPushButton()
@@ -56,7 +56,6 @@ class ScatterToolUI(QtWidgets.QDialog):
                                             QtWidgets.QSizePolicy.Expanding,
                                             QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
-        
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.destination_object_dpy = QtWidgets.QLineEdit(self.centralwidget)
@@ -67,7 +66,6 @@ class ScatterToolUI(QtWidgets.QDialog):
                                                           "Object")
         self.horizontalLayout.addWidget(self.load_destination_btn)
         self.horizontalLayout.addItem(spacerItem)
-        
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.vertices_dpy = QtWidgets.QLineEdit(self.centralwidget)
@@ -77,7 +75,6 @@ class ScatterToolUI(QtWidgets.QDialog):
                                                         " Vertices")
         self.horizontalLayout.addWidget(self.load_vertices_btn)
         self.horizontalLayout.addItem(spacerItem)
-        
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.label = QtWidgets.QLabel("Number of Instances")
@@ -88,7 +85,6 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.num_instances.setProperty("value", 1)
         self.horizontalLayout.addWidget(self.num_instances)
         self.horizontalLayout.addItem(spacerItem)
-        
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.label = QtWidgets.QLabel("Align To Normals")
@@ -96,7 +92,6 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.align_normals = QtWidgets.QCheckBox(self.centralwidget)
         self.horizontalLayout.addWidget(self.align_normals)
         self.horizontalLayout.addItem(spacerItem)
-        
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.label = QtWidgets.QLabel("Min Object Scale")
@@ -107,7 +102,6 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.min_scale.setObjectName("min_scale")
         self.horizontalLayout.addWidget(self.min_scale)
         self.horizontalLayout.addItem(spacerItem)
-        
         self.label = QtWidgets.QLabel("Max Object Scale")
         self.horizontalLayout.addWidget(self.label)
         self.max_scale = QtWidgets.QDoubleSpinBox(self.centralwidget)
@@ -116,7 +110,6 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.max_scale.setObjectName("max_scale")
         self.horizontalLayout.addWidget(self.max_scale)
         self.horizontalLayout.addItem(spacerItem)
-        
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.label = QtWidgets.QLabel("Min Rotation")
@@ -130,17 +123,25 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.rotate_max = QtWidgets.QSpinBox(self.centralwidget)
         self.rotate_max.setMaximum(360)
         self.rotate_max.setProperty("value", 360)
-        self.rotate_max.setObjectName("rotate_max")
         self.horizontalLayout.addWidget(self.rotate_max)
-        
+
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.label = QtWidgets.QLabel("Min Hue Range")
+        self.horizontalLayout.addWidget(self.label)
+        self.min_hue = QtWidgets.QSpinBox(self.centralwidget)
+        self.horizontalLayout.addWidget(self.min_hue)
+        self.label = QtWidgets.QLabel("Max Hue Range")
+        self.horizontalLayout.addWidget(self.label)
+        self.max_hue = QtWidgets.QSpinBox(self.centralwidget)
+        self.horizontalLayout.addWidget(self.max_hue)
+
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.scatter_btn = QtWidgets.QPushButton("Scatter")
-        self.scatter_btn.setObjectName("scatter_btn")
         self.verticalLayout.addWidget(self.scatter_btn)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 250, 21))
-        self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -161,6 +162,7 @@ class ScatterTool(QtWidgets.QMainWindow):
 
         self.surface = None
         self.object = None
+        self.vertex = None
 
     def load_source(self):
 
@@ -223,10 +225,12 @@ class ScatterTool(QtWidgets.QMainWindow):
 
         selection = cmds.ls(selection=True)
 
-        if len(selection) != self.object:
+        if len(selection) != self.vertex:
             message = "Please select vertices only."
             response = QtWidgets.QMessageBox.information(self, "Error",
                                                          message)
+        else:
+            self.vertex = selection[0]
 
     def scatter(self):
 
