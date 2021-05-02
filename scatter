@@ -223,20 +223,56 @@ class ScatterTool(QtWidgets.QMainWindow):
 
         """Loads vertices to scatter source object onto"""
 
+
         selection = cmds.ls(selection=True)
 
-        if len(selection) != self.vertex:
+        if len(selection) == self.surface or self.object:
             message = "Please select vertices only."
             response = QtWidgets.QMessageBox.information(self, "Error",
                                                          message)
+
         else:
-            self.vertex = selection[0]
+            vertex = selection[0]
+
+        if vertex != self.object or self.surface:
+
+            self.vertex = vertex
+
+            self.ui.vertices_dpy.setText(vertex)
+
+
+    def align_normals(self):
+
+        """Function that aligns geometry to normals"""
+
+        new_obj = self.obj_instance()
+
+        cmds.normalConstraint(self.surface, new_obj, aimVector=[0.0,
+                                                                1.0,
+                                                                0.0])
+
+    def randomize_rotation(self, node):
+
+        """Randomizes the rotation angle of objects"""
+
+        random_index = random.randint(self.ui.rotate_min.value(),
+                                      self.ui.rotate_max.value())
+
+        cmds.setAttr("%s.overrideEnabled" % node, True, random_index)
+
+    def obj_instance(self):
+
+        """Creates instance of new object"""
+
+        new_obj = cmds.instance(self.object)[0]
+        return new_obj
+
 
     def scatter(self):
 
         """Scatter tool mechanism"""
 
-        if self.surface and self.object:
+        if self.surface and self.object or self.object and self.vertex:
 
             self.copied_nodes = []
 
@@ -245,6 +281,8 @@ class ScatterTool(QtWidgets.QMainWindow):
             self.scale_max = self.ui.max_scale.value()
             self.rotate_min = self.ui.rotate_min.value()
             self.rotate_max = self.ui.rotate_max.value()
+            self.min_hue = self.ui.min_hue.value()
+            self.max_hue = self.ui.max_hue.value()
             surface_wsp = cmds.xform(self.surface, query=True,
                                      worldSpace=True,
                                      boundingBox=True)
@@ -284,31 +322,6 @@ class ScatterTool(QtWidgets.QMainWindow):
             response = QtWidgets.QMessageBox.information(self, "Error",
                                                          message)
 
-    def align_normals(self):
-
-        """Function that aligns geometry to normals"""
-
-        new_obj = self.obj_instance()
-
-        cmds.normalConstraint(self.surface, new_obj, aimVector=[0.0,
-                                                                1.0,
-                                                                0.0])
-
-    def randomize_rotation(self, node):
-
-        """Randomizes the rotation angle of objects"""
-
-        random_index = random.randint(self.ui.rotate_min.value(),
-                                      self.ui.rotate_max.value())
-
-        cmds.setAttr("%s.overrideEnabled" % node, True, random_index)
-
-    def obj_instance(self):
-
-        """Creates instance of new object"""
-
-        new_obj = cmds.instance(self.object)[0]
-        return new_obj
 
 
 def run():
