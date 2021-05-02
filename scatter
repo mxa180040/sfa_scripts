@@ -271,6 +271,32 @@ class ScatterTool(QtWidgets.QMainWindow):
         new_obj = cmds.instance(self.object)[0]
         return new_obj
 
+    def randomize_color(self, new_obj):
+
+        """Randomizes the color of the scattered objects"""
+
+        random_index = random.randint(self.ui.min_hue.value(),
+                                      self.ui.max_hue.value())
+
+
+        selection = cmds.ls(sl=True, l=True)
+        surface = selection[0]
+
+        for obj in selection:
+            if cmds.listRelatives(obj, s=True):
+                shade = cmds.shadingNode('lambert', asShader=True,
+                                       n='%s_lmb' % surface)
+                sg = cmds.sets(n='%s_sg' % surface, renderable=True,
+                               noSurfaceShader=True, empty=True)
+                r = [random.random() for new_obj in range(random_index)]
+                cmds.setAttr('%s.color' % shade, r[0], r[1],
+                             r[2],
+                             type='double3')
+                cmds.connectAttr('%s.outColor' % shade,
+                                 '%s.surfaceShader' % sg,
+                                 f=True)
+                cmds.sets(surface, e=True, fe=sg)
+        return new_obj
 
     def scatter(self):
 
@@ -319,6 +345,7 @@ class ScatterTool(QtWidgets.QMainWindow):
                 cmds.delete(g_constrain)
 
                 self.randomize_rotation(new_obj)
+                self.randomize_color(new_obj)
                 self.copied_nodes.append(new_obj)
 
         else:
