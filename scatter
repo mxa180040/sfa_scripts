@@ -77,6 +77,17 @@ class ScatterToolUI(QtWidgets.QDialog):
         self.horizontalLayout.addItem(spacerItem)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.label = QtWidgets.QLabel("Vertices Percentage")
+        self.horizontalLayout.addWidget(self.label)
+        self.vert_percent = QtWidgets.QSpinBox(self.centralwidget)
+        self.vert_percent.setSingleStep(10.0)
+        self.vert_percent.setMinimumSize(QtCore.QSize(100, 0))
+        self.vert_percent.setMaximum(100)
+        self.vert_percent.setProperty("value", 100)
+        self.horizontalLayout.addWidget(self.vert_percent)
+        self.horizontalLayout.addItem(spacerItem)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.label = QtWidgets.QLabel("Number of Instances")
         self.horizontalLayout.addWidget(self.label)
         self.num_instances = QtWidgets.QSpinBox(self.centralwidget)
@@ -238,12 +249,28 @@ class ScatterTool(QtWidgets.QMainWindow):
         else:
             vertex = selection[0]
 
-        if vertex != self.object or self.surface:
+            if vertex != self.object or self.surface:
 
-            self.vertex = vertex
+                self.vertex = vertex
 
-            self.ui.vertices_dpy.setText(vertex)
+                self.ui.vertices_dpy.setText(vertex)
 
+    def vert_percent(self):
+
+        """Loads user specified percentage of vertices"""
+
+        percent = 0.1
+        vertices = []
+
+        for obj in cmds.ls(sl=1, long=1):
+            indexes = range(cmds.polyEvaluate(obj, face=1))
+            random.shuffle(indexes)
+            indexes = indexes[:int(percent * len(indexes))]
+
+            for i in range(len(indexes)):
+                indexes[i] = obj + '.f[' + str(indexes[i]) + ']'
+                vertices.extend(indexes)
+                cmds.select(vertices, r=1)
 
     def align_normals(self):
 
@@ -313,6 +340,7 @@ class ScatterTool(QtWidgets.QMainWindow):
             self.rotate_max = self.ui.rotate_max.value()
             self.min_hue = self.ui.min_hue.value()
             self.max_hue = self.ui.max_hue.value()
+            self.vert_percent = self.ui.vert_percent.value()
             surface_wsp = cmds.xform(self.surface, query=True,
                                      worldSpace=True,
                                      boundingBox=True)
